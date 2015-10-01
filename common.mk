@@ -1,11 +1,11 @@
 # Build with clang
-CC  := clang
-CXX := clang++
+CC  := /usr/local/llvm/bin/clang
+CXX := /usr/local/llvm/bin/clang++
 
 # Default flags
 CFLAGS   ?= -g -O2
-CXXFLAGS ?= $(CFLAGS)
-LDFLAGS  += $(addprefix -l,$(LIBS))
+CXXFLAGS ?= -stdlib=libc++ $(CFLAGS)
+LDFLAGS  += -stdlib=libc++ $(addprefix -l,$(LIBS))
 
 # Default source and object files
 SRCS    ?= $(wildcard *.cpp) $(wildcard *.c)
@@ -35,7 +35,7 @@ all:: $(TARGETS)
 # Clean up after a bild
 clean::
 	@for t in $(TARGETS); do \
-	echo $(LOG_PREFIX) Cleaning $$t $(LOG_SUFFIX); \
+	echo -e $(LOG_PREFIX) Cleaning $$t $(LOG_SUFFIX); \
 	done
 	@rm -rf $(TARGETS) obj
 
@@ -46,20 +46,20 @@ test::
 
 # Compile a C++ source file (and generate its dependency rules)
 obj/%.o: %.cpp $(PREREQS)
-	@echo $(LOG_PREFIX) Compiling $< $(LOG_SUFFIX)
+	@echo -e $(LOG_PREFIX) Compiling $< $(LOG_SUFFIX)
 	@mkdir -p obj
-	@$(CXX) $(CXXFLAGS) -MMD -MP -o $@ -c $<
+	$(CXX) $(CXXFLAGS) -MMD -MP -o $@ -c $<
 
 # Compile a C source file (and generate its dependency rules)
 obj/%.o: %.c $(PREREQS)
-	@echo $(LOG_PREFIX) Compiling $< $(LOG_SUFFIX)
+	@echo -e $(LOG_PREFIX) Compiling $< $(LOG_SUFFIX)
 	@mkdir -p obj
-	@$(CC) $(CFLAGS) -MMD -MP -o $@ -c $<
+	$(CC) $(CFLAGS) -MMD -MP -o $@ -c $<
 
 # Link a shared library
 $(SHARED_LIB_TARGETS): $(OBJS)
 	@echo $(LOG_PREFIX) Linking $@ $(LOG_SUFFIX)
-	@$(CXX) -shared $(LDFLAGS) -o $@ $^
+	$(CXX) -shared $(LDFLAGS) -o $@ $^
 
 $(STATIC_LIB_TARGETS): $(OBJS)
 	@echo $(LOG_PREFIX) Linking $@ $(LOG_SUFFIX)
@@ -68,7 +68,7 @@ $(STATIC_LIB_TARGETS): $(OBJS)
 # Link binary targets
 $(OTHER_TARGETS): $(OBJS)
 	@echo $(LOG_PREFIX) Linking $@ $(LOG_SUFFIX)
-	@$(CXX) $(LDFLAGS) -o $@ $^
+	$(CXX) $(LDFLAGS) -o $@ $^
 
 # Set up build targets for benchmarking
 ifneq ($(BENCHMARK),)
